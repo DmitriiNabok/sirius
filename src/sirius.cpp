@@ -97,6 +97,11 @@ void FORTRAN(sirius_set_auto_rmt)(int32_t* auto_rmt)
     global_parameters.set_auto_rmt(*auto_rmt);
 }
 
+void FORTRAN(sirius_set_num_fv_states)(int32_t* num_fv_states)
+{
+    global_parameters.set_num_fv_states(*num_fv_states);
+}
+
 /*
     primitive get functions
 */
@@ -299,6 +304,56 @@ void FORTRAN(sirius_read_state)()
     sirius:: hdf5_tree fout("sirius.h5", false);
     fout.read("energy_fermi", &global_parameters.rti().energy_fermi);
 }
+
+// ------- START DIN --------
+
+void FORTRAN(sirius_read_efermi)(real8* efermi)
+{
+    sirius:: hdf5_tree fout("sirius.h5", false);
+    fout.read("energy_fermi", efermi);
+}
+
+void FORTRAN(sirius_read_band_energies)(int32_t* ik, int32_t* nstsv, real8* band_energies)
+{
+    sirius:: hdf5_tree fout("sirius.h5", false);
+    int ik_ = *ik - 1;
+    int nstsv_ = *nstsv;
+    
+    int num_bands;
+    fout["parameters"].read("num_bands", &num_bands);
+    
+    if (num_bands != nstsv_)
+    {
+        printf("**** sirius_read_band_energies ****");
+        printf("    nstsv=%d\n",nstsv_);
+        printf("num_bands=%d\n",num_bands);
+        error(__FILE__, __LINE__, "wrong wave-function size");
+    }
+    
+    fout["kpoints"][ik_].read("band_energies", &band_energies[0], num_bands);
+}
+
+void FORTRAN(sirius_read_band_occupancies)(int32_t* ik, int32_t* nstsv, real8* band_occupancies)
+{
+    sirius:: hdf5_tree fout("sirius.h5", false);
+    int ik_ = *ik - 1;
+    int nstsv_ = *nstsv;
+    
+    int num_bands;
+    fout["parameters"].read("num_bands", &num_bands);
+    
+    if (num_bands != nstsv_)
+    {
+        printf("**** sirius_read_band_occupancies ****");
+        printf("    nstsv=%d\n",nstsv_);
+        printf("num_bands=%d\n",num_bands);
+        error(__FILE__, __LINE__, "wrong wave-function size");
+    }    
+    
+    fout["kpoints"][ik_].read("band_occupancies", &band_occupancies[0], num_bands);
+}
+
+// ------- END DIN --------
 
 void FORTRAN(sirius_write_state)()
 {

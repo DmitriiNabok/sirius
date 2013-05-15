@@ -207,6 +207,11 @@ class Global : public StepFunction
         {
             lmax_pot_ = lmax_pot__;
         }
+        
+         void set_num_fv_states(int num_fv_states__)
+        {
+            num_fv_states_ = num_fv_states__;
+        }
 
         void set_num_spins(int num_spins__)
         {
